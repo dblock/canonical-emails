@@ -3,7 +3,7 @@ CanonicalEmails
 
 [![Build Status](https://travis-ci.org/dblock/canonical-emails.png)](https://travis-ci.org/dblock/canonical-emails)
 
-Combine email validation and transformations to produce canonical email addresses. For example, transform `Donald Duck@gmail.com` into `donaldduck@gmail.com`, for `@gmail.com` addresses only. Patches instances of `Mail::Address`.
+Combine email validation and transformations to produce canonical email addresses. For example, parse and transform `Donald Duck <donald.duck@gmail.com>` into `donaldduck@gmail.com`, for `@gmail.com` addresses only. Patches instances of `Mail::Address`.
 
 ### Install
 
