@@ -1,0 +1,29 @@
+-
+  source: Donald Duck <example@example.org>
+  name: Donald Duck
+  local: example
+  domain: example.org
+-
+  source: donald@example.org
+  local: donald
+  domain: example.org
+-
+  source: donald@eXaMPLe.org
+  local: donald
+  domain: eXaMPLe.org
+-
+  source: donald.duck@gmail.com
+  local: donaldduck
+  domain: gmail.com
+-
+  source: donaldduck@gmail.com
+  local: donaldduck
+  domain: gmail.com
+-
+  source: donald.duck@gMaiL.com
+  local: donaldduck
+  domain: gmail.com
+-
+  source: donald.duck@google.com
+  local: donald.duck
+  domain: google.com

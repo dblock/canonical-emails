@@ -1,0 +1,16 @@
+-
+  email: Donald Duck <DoNaLD.DuCK@GMaiL.CoM>
+  transforms:
+    - CanonicalEmails::Downcase
+  canonical_email: Donald Duck <donald.duck@gmail.com>
+-
+  email: Donald Duck <DoNaLD.DuCK@GMaiL.CoM>
+  transforms:
+    - CanonicalEmails::GMail
+  canonical_email: Donald Duck <donaldduck@gmail.com>
+-
+  email: Donald Duck <DoNaLD.DuCK@GMaiL.CoM>
+  transforms:
+    - CanonicalEmails::GMail
+    - CanonicalEmails::Reverse
+  canonical_email: Donald Duck <kcuddlanod@moc.liamg>
