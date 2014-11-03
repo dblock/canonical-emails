@@ -28,7 +28,7 @@ user.email = "Donald Duck <Donald.Duck@gmail.com>"
 user.canonical_email.class # Mail::Address
 user.canonical_email.to_s # "Donald Duck <donaldduck@gmail.com>"
 user.canonical_email.address # "donaldduck@gmail.com"
-``` 
+```
 
 ### Transform
 
@@ -86,15 +86,10 @@ email.name # "kcuD dlanoD"
 
 ### Contribute
 
-You're encouraged to contribute to this gem.
-
-* Fork this project.
-* Make changes, write tests.
-* Updated CHANGELOG.
-* Make a pull request, bonus points for topic branches.
+See [CONTRIBUTING](CONTRIBUTING.md).
 
 ### Copyright and License
 
-Copyright Daniel Doubrovkine and Contributors, Artsy Inc., 2013
+Copyright Daniel Doubrovkine and Contributors, [Artsy](https://artsy.net), 2013-2014
 
 [MIT License](LICENSE.md)
