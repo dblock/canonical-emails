@@ -5,7 +5,7 @@ require 'rspec'
 require 'canonical-emails'
 require 'yaml'
 
-[ "support", "shared" ].each do |path|
+%w(support shared).each do |path|
   Dir["#{File.dirname(__FILE__)}/#{path}/**/*.rb"].each do |f|
     require f
   end

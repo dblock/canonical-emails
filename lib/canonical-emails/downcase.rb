@@ -1,6 +1,5 @@
 module CanonicalEmails
   module Downcase
-
     def self.transform(value)
       Mail::Address.new(value).tap do |email|
         email.instance_eval do
@@ -8,6 +7,7 @@ module CanonicalEmails
             value = super
             value.downcase if value
           end
+
           def domain
             value = super
             value.downcase if value
@@ -15,6 +15,5 @@ module CanonicalEmails
         end
       end if value
     end
-
   end
 end
