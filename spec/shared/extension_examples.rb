@@ -8,7 +8,7 @@ shared_examples 'extension fixture_examples' do
       end
       user = klass.new
       user.email = example['email']
-      user.canonical_email.to_s.should == example['canonical_email']
+      expect(user.canonical_email.to_s).to eq(example['canonical_email'])
     end
   end
 end
