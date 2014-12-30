@@ -1,7 +1,10 @@
 CanonicalEmails
 ==============
 
-[![Build Status](https://travis-ci.org/dblock/canonical-emails.png)](https://travis-ci.org/dblock/canonical-emails)
+[![Gem Version](http://img.shields.io/gem/v/canonical-emails.svg)](http://badge.fury.io/rb/canonical-emails)
+[![Build Status](http://img.shields.io/travis/dblock/canonical-emails.svg)](https://travis-ci.org/dblock/canonical-emails)
+[![Dependency Status](https://gemnasium.com/dblock/canonical-emails.svg)](https://gemnasium.com/dblock/canonical-emails)
+[![Code Climate](https://codeclimate.com/github/dblock/canonical-emails.svg)](https://codeclimate.com/github/dblock/canonical-emails)
 
 Combine email validation and transformations to produce canonical email addresses. For example, parse and transform `Donald Duck <donald.duck@gmail.com>` into `donaldduck@gmail.com`, for `@gmail.com` addresses only. Patches instances of `Mail::Address`.
 
