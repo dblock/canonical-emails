@@ -44,6 +44,10 @@ ACTIVESUPPORT_VERSION='~> 7.2.0' bundle exec rspec
 
 Run focused specs with `bundle exec rspec spec/canonical-emails/gmail_spec.rb`. Run `bundle exec rake` for RuboCop and the full suite. Metrics and line-length cops are disabled; regenerate `.rubocop_todo.yml` only after applying autocorrections and reviewing the remaining offenses.
 
+## Releasing
+
+Maintainers should follow [RELEASING.md](RELEASING.md) for release preparation, publishing, verification, and starting the next development version.
+
 ## Write Tests
 
 Try to write a test that reproduces the problem you're trying to fix or describes a feature that you want to build.
