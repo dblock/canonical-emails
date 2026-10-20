@@ -5,25 +5,34 @@ module CanonicalEmails
   class Address < Mail::Address
     attr_reader :username, :tag
 
-    def self.transform(value)
-      new(value)
+    def self.parse(value)
+      CanonicalEmails.parse(value, type: self)
+    end
+
+    def self.accepts?(_domain)
+      true
     end
 
     def initialize(value = nil)
       super
+      raise ArgumentError, "#{self.class} does not support domain #{get_domain.inspect}" unless self.class.accepts?(get_domain)
+
       update_properties
     end
 
     def address=(value)
-      super
+      raise TypeError, 'address must be a String or nil' unless value.nil? || value.is_a?(String)
+
+      data = Mail::Parsers::AddressListsParser.parse(value).addresses.first if value && !value.strip.empty?
+      raise ArgumentError, "#{self.class} does not support domain #{data&.domain.inspect}" unless self.class.accepts?(data&.domain)
+
+      super(data)
+      @display_name = nil
+      @format_comments = nil
       update_properties
     end
 
     private
-
-    def normalize?
-      true
-    end
 
     def update_properties
       @username = get_local

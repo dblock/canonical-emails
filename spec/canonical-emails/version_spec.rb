@@ -11,7 +11,7 @@ describe CanonicalEmails do
       require 'simplecov'
       SimpleCov.command_name 'underscore entry point'
       require 'canonical_emails'
-      abort 'Missing normalization' unless CanonicalEmails::GMail.transform('D.O.N@gmail.com').address == 'don@gmail.com'
+      abort 'Missing normalization' unless CanonicalEmails.parse('A.L.E.X@gmail.com').address == 'alex@gmail.com'
       abort 'Missing extensions' unless CanonicalEmails::Extensions.respond_to?(:included)
       abort 'Missing version' unless CanonicalEmails::VERSION.match?(/\\A\\d+\\.\\d+\\.\\d+\\z/)
     RUBY
