@@ -5,15 +5,11 @@ module CanonicalEmails
   module Extensions
     extend ActiveSupport::Concern
 
-    # Defines accessors that apply transformations in their declared order.
+    # Defines provider-aware canonical address accessors.
     module ClassMethods
-      def canonical_email(field, *parsers)
+      def canonical_email(field, type: nil)
         define_method "canonical_#{field}" do
-          value = send(field)
-          Array(parsers).each do |parser|
-            value = parser.transform(value.to_s)
-          end
-          value
+          CanonicalEmails.parse(send(field), type: type)
         end
       end
     end

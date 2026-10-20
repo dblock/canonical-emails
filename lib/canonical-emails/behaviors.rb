@@ -6,24 +6,21 @@ module CanonicalEmails
     # Lowercases the local part.
     module DowncaseLocal
       def local(*)
-        value = super
-        normalize? ? value&.downcase : value
+        super&.downcase
       end
     end
 
     # Lowercases the domain.
     module DowncaseDomain
       def domain(*)
-        value = super
-        normalize? ? value&.downcase : value
+        super&.downcase
       end
     end
 
     # Removes periods from the local part.
     module RemovePeriods
       def local(*)
-        value = super
-        normalize? ? value&.delete('.') : value
+        super&.delete('.')
       end
     end
 
@@ -31,7 +28,7 @@ module CanonicalEmails
     module StripTags
       def local(*)
         value = super
-        return value unless value && normalize?
+        return unless value
 
         value.split('+', 2).first
       end
@@ -40,7 +37,7 @@ module CanonicalEmails
 
       def update_properties
         super
-        @tag = username && normalize? ? username.split('+', 2).at(1) : nil
+        @tag = username.split('+', 2).at(1) if username
       end
     end
   end

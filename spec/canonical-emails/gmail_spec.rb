@@ -3,62 +3,52 @@
 require 'spec_helper'
 
 describe CanonicalEmails::GMail do
-  it 'returns an empty Mail address for nil input' do
-    address = subject.transform(nil)
+  it 'normalizes Gmail input and preserves original metadata' do
+    address = described_class.parse('Alex Smith <Alex.Smith+Newsletter+Offers@GMAIL.COM>')
 
-    expect(address).to be_a(Mail::Address)
-    expect(address.to_s).to eq('')
+    expect(address).to be_instance_of(described_class)
+    expect(address.to_s).to eq('Alex Smith <alexsmith@gmail.com>')
+    expect(address.username).to eq('Alex.Smith+Newsletter+Offers')
+    expect(address.tag).to eq('Newsletter+Offers')
+  end
+
+  it 'returns nil for nil input' do
+    expect(described_class.parse(nil)).to be_nil
+  end
+
+  it 'refreshes normalization and metadata on reassignment' do
+    address = described_class.parse('Alex.Smith+Old@gmail.com')
+    address.address = 'Alex Smith <Alex.Smith+Newsletter+Offers@GMAIL.COM>'
+
+    expect(address.to_s).to eq('Alex Smith <alexsmith@gmail.com>')
+    expect(address.username).to eq('Alex.Smith+Newsletter+Offers')
+    expect(address.tag).to eq('Newsletter+Offers')
+
+    address.address = 'Alex.Smith@gmail.com'
     expect(address.tag).to be_nil
-    expect(address.username).to be_nil
+    expect(address.to_s).to eq('alexsmith@gmail.com')
   end
 
-  it 'supports clearing an address after transformation' do
-    address = subject.transform('Donald.Duck@gmail.com')
-    address.address = ''
+  it 'rejects provider changes and clearing without changing the existing address' do
+    address = described_class.parse('Alex.Smith+Newsletter@gmail.com')
 
-    expect(address.local).to be_nil
-    expect(address.domain).to be_nil
-    expect(address.to_s).to eq('')
-    expect(address.tag).to be_nil
-    expect(address.username).to be_nil
+    ['Alex@outlook.com', '', nil].each do |value|
+      expect { address.address = value }.to raise_error(ArgumentError, /does not support domain/)
+      expect(address.address).to eq('alexsmith@gmail.com')
+      expect(address.username).to eq('Alex.Smith+Newsletter')
+      expect(address.tag).to eq('Newsletter')
+    end
   end
 
-  it 'normalizes an address reassigned from another provider' do
-    address = subject.transform('Donald.Duck+News@EXAMPLE.COM')
-    address.address = 'Donald.Duck+News@GMAIL.COM'
-
-    expect(address.address).to eq('donaldduck@gmail.com')
-    expect(address.username).to eq('Donald.Duck+News')
-    expect(address.tag).to eq('News')
+  ['Alex@EXAMPLE.COM', 'Alex@gmail.com.example.org', 'Alex@googlemail.com', 'Alex', ''].each do |value|
+    it "rejects non-Gmail input #{value.inspect}" do
+      expect { described_class.parse(value) }.to raise_error(ArgumentError, /does not support domain/)
+    end
   end
 
-  it 'does not expose tags for domainless addresses' do
-    address = subject.transform('donald+News')
-
-    expect(address.tag).to be_nil
-    expect(address.username).to eq('donald+News')
+  it 'rejects mismatched input through its constructor as well' do
+    expect { described_class.new('Alex@EXAMPLE.COM') }.to raise_error(ArgumentError, /does not support domain/)
   end
 
-  it 'updates the username and tag when the address changes' do
-    address = subject.transform('donald.duck+Old@gmail.com')
-    address.address = 'donald.duck+New+Tag@gmail.com'
-
-    expect(address.tag).to eq('New+Tag')
-    expect(address.username).to eq('donald.duck+New+Tag')
-    expect(address.address).to eq('donaldduck@gmail.com')
-
-    address.address = 'Donald.Duck+Other@EXAMPLE.COM'
-
-    expect(address.tag).to be_nil
-    expect(address.username).to eq('Donald.Duck+Other')
-    expect(address.address).to eq('Donald.Duck+Other@EXAMPLE.COM')
-
-    address.address = 'Donald.Duck+Back@GMAIL.COM'
-
-    expect(address.tag).to eq('Back')
-    expect(address.username).to eq('Donald.Duck+Back')
-    expect(address.address).to eq('donaldduck@gmail.com')
-  end
-
-  it_behaves_like 'transform fixture_examples'
+  it_behaves_like 'parse fixture_examples', CanonicalEmails
 end

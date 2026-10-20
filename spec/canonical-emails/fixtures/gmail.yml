@@ -1,81 +1,81 @@
 -
-  source: Donald Duck <example@example.org>
+  source: Alex Smith <example@example.org>
   username: example
-  name: Donald Duck
+  name: Alex Smith
   local: example
   domain: example.org
   tag:
 -
-  source: donald@example.org
-  username: donald
-  local: donald
+  source: alex@example.org
+  username: alex
+  local: alex
   domain: example.org
   tag:
 -
-  source: donald@eXaMPLe.org
-  username: donald
-  local: donald
+  source: alex@eXaMPLe.org
+  username: alex
+  local: alex
   domain: eXaMPLe.org
   tag:
 -
-  source: donald.duck@gmail.com
-  username: donald.duck
-  local: donaldduck
+  source: alex.smith@gmail.com
+  username: alex.smith
+  local: alexsmith
   domain: gmail.com
   tag:
 -
-  source: donaldduck@gmail.com
-  username: donaldduck
-  local: donaldduck
+  source: alexsmith@gmail.com
+  username: alexsmith
+  local: alexsmith
   domain: gmail.com
   tag:
 -
-  source: donald.duck@gMaiL.com
-  username: donald.duck
-  local: donaldduck
+  source: alex.smith@gMaiL.com
+  username: alex.smith
+  local: alexsmith
   domain: gmail.com
   tag:
 -
-  source: donald.duck@google.com
-  username: donald.duck
-  local: donald.duck
+  source: alex.smith@google.com
+  username: alex.smith
+  local: alex.smith
   domain: google.com
   tag:
 -
-  source: Donald Duck <Donald.Duck+not.daffy@GMAIL.COM>
-  username: Donald.Duck+not.daffy
-  name: Donald Duck
-  local: donaldduck
+  source: Alex Smith <Alex.Smith+news.letter@GMAIL.COM>
+  username: Alex.Smith+news.letter
+  name: Alex Smith
+  local: alexsmith
   domain: gmail.com
-  tag: not.daffy
+  tag: news.letter
 -
-  source: donald.duck+tag+another@gmail.com
-  username: donald.duck+tag+another
-  local: donaldduck
+  source: alex.smith+tag+another@gmail.com
+  username: alex.smith+tag+another
+  local: alexsmith
   domain: gmail.com
   tag: tag+another
 -
-  source: donald.duck+tag@example.org
-  username: donald.duck+tag
-  local: donald.duck+tag
+  source: alex.smith+tag@example.org
+  username: alex.smith+tag
+  local: alex.smith+tag
   domain: example.org
   tag:
 -
-  source: donald.duck+tag@outlook.com
-  username: donald.duck+tag
-  local: donald.duck+tag
+  source: alex.smith+tag@outlook.com
+  username: alex.smith+tag
+  local: alex.smith+tag
   domain: outlook.com
   tag:
 -
-  source: Donald Duck <Donald.Duck+News.Letter+Offers@GMAIL.COM>
-  username: Donald.Duck+News.Letter+Offers
-  name: Donald Duck
-  local: donaldduck
+  source: Alex Smith <Alex.Smith+Newsletter.Letter+Offers@GMAIL.COM>
+  username: Alex.Smith+Newsletter.Letter+Offers
+  name: Alex Smith
+  local: alexsmith
   domain: gmail.com
-  tag: News.Letter+Offers
+  tag: Newsletter.Letter+Offers
 -
-  source: donald.duck+@gmail.com
-  username: donald.duck+
-  local: donaldduck
+  source: alex.smith+@gmail.com
+  username: alex.smith+
+  local: alexsmith
   domain: gmail.com
   tag: ''
