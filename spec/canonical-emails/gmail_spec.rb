@@ -23,6 +23,15 @@ describe CanonicalEmails::GMail do
     expect(address.username).to be_nil
   end
 
+  it 'normalizes an address reassigned from another provider' do
+    address = subject.transform('Donald.Duck+News@EXAMPLE.COM')
+    address.address = 'Donald.Duck+News@GMAIL.COM'
+
+    expect(address.address).to eq('donaldduck@gmail.com')
+    expect(address.username).to eq('Donald.Duck+News')
+    expect(address.tag).to eq('News')
+  end
+
   it 'does not expose tags for domainless addresses' do
     address = subject.transform('donald+News')
 
