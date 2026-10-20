@@ -293,6 +293,8 @@ Custom types are not automatically registered for provider detection. Override `
 
 Canonicalization is not validation. Mail parsing may reject malformed input but also accepts forms without a domain. Provider class checks only enforce a domain restriction; they do not establish RFC compliance, DNS existence, mailbox ownership, or deliverability. Apply your application's validation policy separately and verify ownership with a confirmation email when needed.
 
+For Active Model email validations, consider [valid_email](https://github.com/hallelujah/valid_email). Configure it separately according to your application's requirements; CanonicalEmails does not include or run validation automatically. Validation is not a substitute for confirming mailbox ownership.
+
 ### Contribute
 
 See [CONTRIBUTING](CONTRIBUTING.md).
