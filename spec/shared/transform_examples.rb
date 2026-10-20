@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 shared_examples 'transform fixture_examples' do
   yml_examples.each do |example|
     it "transforms '#{example['source']}'" do
@@ -5,6 +7,7 @@ shared_examples 'transform fixture_examples' do
         expect(email.local).to eq(example['local'])
         expect(email.domain).to eq(example['domain'])
         expect(email.name).to eq(example['name'])
+        expect(email.address).to eq("#{example['local']}@#{example['domain']}")
       end
     end
   end

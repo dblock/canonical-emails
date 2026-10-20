@@ -1,20 +1,23 @@
+# frozen_string_literal: true
+
 module CanonicalEmails
+  # Removes insignificant dots and normalizes case for gmail.com addresses only.
   module GMail
     def self.transform(value)
       Mail::Address.new(value).tap do |email|
-        if email.domain && ['gmail.com'].include?(email.domain.downcase)
+        if value && email.domain && ['gmail.com'].include?(email.domain.downcase)
           email.instance_eval do
             def get_local
               value = super
-              value.gsub('.', '').downcase if value
+              value&.gsub('.', '')&.downcase
             end
 
-            def domain
+            def domain(*)
               value = super
-              value.downcase if value
+              value&.downcase
             end
           end
-        end if value
+        end
       end
     end
   end

@@ -1,7 +1,6 @@
 # Contributing to Canonical-Emails
 
-You're encouraged to submit [pull requests](https://github.com/dblock/canonical-emails/pulls),
-[propose features and discuss issues](https://github.com/dblock/canonical-emails/issues).
+You're encouraged to submit [pull requests](https://github.com/dblock/canonical-emails/pulls), [propose features and discuss issues](https://github.com/dblock/canonical-emails/issues).
 
 In the examples below, substitute your Github username for `contributor` in URLs.
 
@@ -33,6 +32,17 @@ Ensure that you can build the project and run tests.
 bundle install
 bundle exec rake
 ```
+
+Requires Ruby 3.1 or newer; use a Ruby compatible with the ActiveSupport version selected in Gemfile (8.1 by default). GitHub Actions tests ActiveSupport 6.1 through 8.1 with Ruby 3.1 through 4.0 and runs lint separately.
+
+Select another ActiveSupport series with `ACTIVESUPPORT_VERSION`:
+
+```sh
+ACTIVESUPPORT_VERSION='~> 7.2.0' bundle update
+ACTIVESUPPORT_VERSION='~> 7.2.0' bundle exec rspec
+```
+
+Run focused specs with `bundle exec rspec spec/canonical-emails/gmail_spec.rb`. Run `bundle exec rake` for RuboCop and the full suite. Metrics and line-length cops are disabled; regenerate `.rubocop_todo.yml` only after applying autocorrections and reviewing the remaining offenses.
 
 ## Write Tests
 
@@ -113,7 +123,7 @@ git push origin my-feature-branch -f
 
 ## Check on Your Pull Request
 
-Go back to your pull request after a few minutes and see whether it passed muster with Travis-CI. Everything should look green, otherwise fix issues and amend your commit as described above.
+Check the GitHub Actions results on your pull request and address failures.
 
 ## Be Patient
 

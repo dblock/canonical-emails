@@ -1,9 +1,15 @@
+inherit_from: .rubocop_todo.yml
+
 AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.1
   Exclude:
     - vendor/**/*
     - bin/**/*
     - gemfiles/**/*
 
-inherit_from: .rubocop_todo.yml
+Metrics:
+  Enabled: false
 
-
+Layout/LineLength:
+  Enabled: false
