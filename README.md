@@ -56,7 +56,7 @@ user.canonical_email.address # "alexsmith@gmail.com"
 user.canonical_backup_email.address # "alexsmith+backup@gmail.com"
 ```
 
-The accessors are independent: each parses its own field's current value without changing either original field. Updating or clearing one field does not affect the other; a nil field produces a nil canonical accessor.
+Each accessor reads its own field without changing the original value. A nil field returns nil.
 
 ### Custom Accessor Names
 
@@ -99,7 +99,7 @@ user.email.address # "alexsmith@gmail.com"
 user.email.tag # "Newsletter"
 ```
 
-This changes the reader's return type from a string to an address object (or `nil`), so update callers accordingly. The original writer still stores the submitted value unchanged; normalization happens lazily on the first read and is cached until the raw input changes. A prepended reader calls the original implementation with `super`, supporting readers defined on the class, inherited readers, and generated attribute readers. The underlying reader must exist when accessed. `type:` also works with reader overrides, and parsing/provider errors propagate.
+The reader now returns an address object (or `nil`) instead of a string. The original writer still stores the submitted value unchanged. The source reader must exist when accessed; inherited and generated readers are supported. `type:` also works with reader overrides.
 
 Raw-value access depends on your model: for the `attr_accessor` example, `user.instance_variable_get(:@email)` returns the original string; in ActiveRecord, use `user[:email]`. No additional raw-value accessor is generated.
 
@@ -145,16 +145,6 @@ email.username # "Alex.Smith+Newsletter+Offers"
 email.tag # "Newsletter+Offers"
 ```
 
-`username` retains the original local part, and `tag` retains the original plus suffix. An explicitly empty Gmail tag (`alex.smith+@gmail.com`) returns `""`; no plus sign returns `nil`.
-
-Explicit parsing with `GMail.parse("alex@outlook.com")` raises `ArgumentError` rather than returning a misleading Gmail object. Parse a new object to change the address or provider.
-
-```ruby
-CanonicalEmails::GMail.parse("alex.smith+@gmail.com").tag # ""
-CanonicalEmails::GMail.parse("alex.smith@gmail.com").tag # nil
-CanonicalEmails::GMail.parse("alex@outlook.com") # raises ArgumentError
-```
-
 #### Tagged Gmail
 
 `CanonicalEmails::TaggedGMail` normalizes Gmail periods and case while retaining the complete plus suffix in the address, lowercased along with the rest of the local part. It is built in but not registered for automatic dispatch; select it explicitly:
@@ -168,7 +158,7 @@ email.username # "Alex.Smith+Newsletter+Offers"
 email.tag # nil
 ```
 
-It enforces the same Gmail domain restrictions as `GMail`. `tag` remains `nil` because the suffix is not stripped. `GMail` inherits its normalization from `TaggedGMail` and adds `StripTags`; default parsing continues to return `GMail`.
+It enforces the same Gmail domain restrictions as `GMail`. `tag` remains `nil` because the suffix is not stripped.
 
 ### Register Providers
 
@@ -191,11 +181,9 @@ email.username # "Alex.Smith+Newsletter"
 email.tag # nil
 ```
 
-To implement additional normalization, include the corresponding mixins in your custom class: `DowncaseLocal` for local-part case, `RemovePeriods` for periods, or `StripTags` for plus-tags. `StripTags` also populates `tag` from the original suffix. Enable period or tag removal only after establishing that those variants identify the same mailbox for the provider and deployment you support; adding an Outlook class alone does not establish that guarantee.
+See [Custom Address Types](#custom-address-types) for additional normalization behaviors.
 
-Registrations match complete domains case-insensitively, not subdomains or suffixes. The type must subclass `Address` and accept the registered domain. Repeating the same mapping is harmless; a conflicting mapping raises `ArgumentError` without replacing the existing type. Explicit `type:` and class-level `.parse` bypass the registry. Registration and lookup are synchronized; configure providers during initialization before serving requests. There is no automatic subclass discovery or load-order-based provider precedence.
-
-The input is parsed once and passed as Mail's parsed address structure to the selected class, retaining original metadata without serialization between normalization steps.
+Registrations match complete domains case-insensitively, not subdomains or suffixes. The type must subclass `Address` and accept the registered domain. Repeating the same mapping is harmless; a conflicting mapping raises `ArgumentError` without replacing the existing type. Explicit `type:` and class-level `.parse` bypass the registry.
 
 Call `CanonicalEmails.clear` during application initialization to remove all registrations, including the default Gmail mapping, before configuring your own provider set. For example, to use `TaggedGMail` for automatic Gmail detection:
 
@@ -208,11 +196,11 @@ email.class # CanonicalEmails::TaggedGMail
 email.address # "alexsmith+newsletter@gmail.com"
 ```
 
-Clearing an empty registry is harmless. Defaults are not automatically restored: domains remain generic until registered again. Explicit `type:` and class-level `.parse` continue to work. `clear` is synchronized, but clearing and registering are separate operations; configure the full set before serving requests.
+Defaults are not automatically restored: domains remain generic until registered again. Explicit `type:` and class-level `.parse` continue to work. Configure the full provider set before serving requests.
 
 ### Explicit Types
 
-Model accessors reuse a cached parsed address while the raw input is unchanged and return `nil` for nil input. Use `canonical_email :email, type: CanonicalEmails::Address` to disable provider detection or select a custom class. Positional transformer arguments and multi-transform pipelines are no longer supported; compose behaviors on a single class instead.
+Use `canonical_email :email, type: CanonicalEmails::Address` to disable provider detection in a model, or select another class with `type:`.
 
 Specify `type:` to request an exact address class instead of provider detection:
 
@@ -234,7 +222,7 @@ CanonicalEmails::Downcase.parse("Alex.Smith+Newsletter@EXAMPLE.COM")
 
 An explicit provider class rejects mismatched domains with `ArgumentError`, including empty and domainless input. All `.parse` entry points return `nil` for nil input.
 
-Generic addresses preserve local-part and domain casing for compatibility. Domains are case-insensitive; preserving their case is not an email requirement. Use `type: CanonicalEmails::Downcase` to lowercase both parts regardless of provider.
+Generic addresses preserve local-part and domain casing. Use `type: CanonicalEmails::Downcase` to lowercase both parts regardless of provider.
 
 ### Assignment
 
@@ -252,7 +240,7 @@ user.email = "Alex@example.com"
 user.canonical_email.address # "Alex@example.com"
 ```
 
-For `as: :email`, the same rule applies to `user.email.address = ...`; use `user.email = ...` to update the stored value. Objects are not frozen, so Mail's lazy formatting caches still work. Other inherited mutable APIs are not made read-only.
+For `as: :email`, use `user.email = ...` to update the stored value. Removing `address=` does not make other inherited Mail APIs read-only.
 
 #### Directly Parsed Addresses
 
@@ -266,17 +254,9 @@ email.username # "Alex.Smith+Newsletter"
 email.tag # "Newsletter"
 ```
 
-Each parse selects the appropriate class and captures fresh original metadata:
-
-```ruby
-email = CanonicalEmails.parse("Alex.Smith@EXAMPLE.COM")
-email.class # CanonicalEmails::Address
-email.address # "Alex.Smith@EXAMPLE.COM"
-```
-
 ### Custom Address Types
 
-`CanonicalEmails::Address` performs no normalization by default. Include any combination of these mixins to opt in, without option flags:
+`CanonicalEmails::Address` performs no normalization by default. Include any combination of these mixins to opt in:
 
 | Mixin under `CanonicalEmails::Behaviors` | Behavior |
 |---|---|
@@ -291,9 +271,7 @@ Custom types are not automatically registered for provider detection. Override `
 
 ### Validation
 
-Canonicalization is not validation. Mail parsing may reject malformed input but also accepts forms without a domain. Provider class checks only enforce a domain restriction; they do not establish RFC compliance, DNS existence, mailbox ownership, or deliverability. Apply your application's validation policy separately and verify ownership with a confirmation email when needed.
-
-For Active Model email validations, consider [valid_email](https://github.com/hallelujah/valid_email). Configure it separately according to your application's requirements; CanonicalEmails does not include or run validation automatically. Validation is not a substitute for confirming mailbox ownership.
+CanonicalEmails normalizes email addresses; it does not validate them. For Active Model email validations, consider [valid_email](https://github.com/hallelujah/valid_email), configured separately.
 
 ### Contribute
 
