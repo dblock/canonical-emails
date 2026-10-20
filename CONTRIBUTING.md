@@ -48,6 +48,10 @@ Run focused specs with `bundle exec rspec spec/canonical-emails/gmail_spec.rb`. 
 
 Maintainers should follow [RELEASING.md](RELEASING.md) for release preparation, publishing, verification, and starting the next development version.
 
+## Coverage
+
+RSpec collects line and branch coverage with SimpleCov configured in `.simplecov`, including unloaded library files. Open `coverage/index.html` for the HTML report; `coverage/lcov.info` is generated for external reporting. The Coverage workflow uploads both reports and submits LCOV to [Coveralls](https://coveralls.io/github/dblock/canonical-emails). A maintainer must enable the repository in Coveralls for hosted reports.
+
 ## Write Tests
 
 Try to write a test that reproduces the problem you're trying to fix or describes a feature that you want to build.
