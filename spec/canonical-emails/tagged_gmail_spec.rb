@@ -20,22 +20,16 @@ describe CanonicalEmails::TaggedGMail do
     expect(described_class.parse(nil)).to be_nil
   end
 
-  it 'preserves an empty plus suffix and refreshes metadata on assignment' do
+  it 'preserves an empty plus suffix' do
     address = described_class.parse('Alex.Smith+@gmail.com')
     expect(address.address).to eq('alexsmith+@gmail.com')
 
-    address.address = 'Alex.Smith+Work@GMAIL.COM'
-    expect(address.address).to eq('alexsmith+work@gmail.com')
-    expect(address.username).to eq('Alex.Smith+Work')
+    expect(address.username).to eq('Alex.Smith+')
     expect(address.tag).to be_nil
   end
 
-  it 'enforces the Gmail domain for parsing and reassignment' do
+  it 'enforces the Gmail domain for parsing' do
     expect { described_class.parse('Alex@outlook.com') }.to raise_error(ArgumentError, /does not support domain/)
-    address = described_class.parse('Alex.Smith+Newsletter@gmail.com')
-
-    expect { address.address = 'Alex@outlook.com' }.to raise_error(ArgumentError, /does not support domain/)
-    expect(address.address).to eq('alexsmith+newsletter@gmail.com')
   end
 
   it 'can be selected by a model accessor' do

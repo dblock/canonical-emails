@@ -99,7 +99,7 @@ user.email.address # "alexsmith@gmail.com"
 user.email.tag # "Newsletter"
 ```
 
-This changes the reader's return type from a string to an address object (or `nil`), so update callers accordingly. The original writer still stores the submitted value unchanged; normalization happens on each read, not on assignment. A prepended reader calls the original implementation with `super`, supporting readers defined on the class, inherited readers, and generated attribute readers. The underlying reader must exist when accessed. `type:` also works with reader overrides, and parsing/provider errors propagate.
+This changes the reader's return type from a string to an address object (or `nil`), so update callers accordingly. The original writer still stores the submitted value unchanged; normalization happens lazily on the first read and is cached until the raw input changes. A prepended reader calls the original implementation with `super`, supporting readers defined on the class, inherited readers, and generated attribute readers. The underlying reader must exist when accessed. `type:` also works with reader overrides, and parsing/provider errors propagate.
 
 Raw-value access depends on your model: for the `attr_accessor` example, `user.instance_variable_get(:@email)` returns the original string; in ActiveRecord, use `user[:email]`. No additional raw-value accessor is generated.
 
@@ -147,7 +147,7 @@ email.tag # "Newsletter+Offers"
 
 `username` retains the original local part, and `tag` retains the original plus suffix. An explicitly empty Gmail tag (`alex.smith+@gmail.com`) returns `""`; no plus sign returns `nil`.
 
-Explicit parsing with `GMail.parse("alex@outlook.com")` raises `ArgumentError` rather than returning a misleading Gmail object. Gmail objects also reject non-Gmail, empty, and nil assignments, leaving the existing address unchanged. Parse a new object to change providers.
+Explicit parsing with `GMail.parse("alex@outlook.com")` raises `ArgumentError` rather than returning a misleading Gmail object. Parse a new object to change the address or provider.
 
 ```ruby
 CanonicalEmails::GMail.parse("alex.smith+@gmail.com").tag # ""
@@ -212,7 +212,7 @@ Clearing an empty registry is harmless. Defaults are not automatically restored:
 
 ### Explicit Types
 
-Model accessors parse the current value on every call and return `nil` for nil input. Use `canonical_email :email, type: CanonicalEmails::Address` to disable provider detection or select a custom class. Positional transformer arguments and multi-transform pipelines are no longer supported; compose behaviors on a single class instead.
+Model accessors reuse a cached parsed address while the raw input is unchanged and return `nil` for nil input. Use `canonical_email :email, type: CanonicalEmails::Address` to disable provider detection or select a custom class. Positional transformer arguments and multi-transform pipelines are no longer supported; compose behaviors on a single class instead.
 
 Specify `type:` to request an exact address class instead of provider detection:
 
@@ -238,20 +238,37 @@ Generic addresses preserve local-part and domain casing for compatibility. Domai
 
 ### Assignment
 
-Assign a new string with `email.address = value` to refresh normalization, `username`, `tag`, and cached display-name/comment formatting:
+#### Model Fields
+
+Both separately named and overridden model readers cache their results per accessor and model instance. Each read compares the current raw input against a saved string copy, detecting writer assignments, changes that bypass the writer, and in-place string edits. Unchanged input returns the same address object (or cached nil); changed input is parsed again. Parsing errors propagate rather than returning a stale result. Configure provider registrations during initialization; registry changes alone do not invalidate existing model caches.
+
+Canonical address objects do not support `address=`. Assign through the model's original writer instead:
+
+```ruby
+user.email = "Alex.Smith+Newsletter@gmail.com"
+user.canonical_email.equal?(user.canonical_email) # true
+user.canonical_email.address = "Alex@example.com" # raises NoMethodError
+user.email = "Alex@example.com"
+user.canonical_email.address # "Alex@example.com"
+```
+
+For `as: :email`, the same rule applies to `user.email.address = ...`; use `user.email = ...` to update the stored value. Objects are not frozen, so Mail's lazy formatting caches still work. Other inherited mutable APIs are not made read-only.
+
+#### Directly Parsed Addresses
+
+Parse a new value instead of reassigning a directly parsed address:
 
 ```ruby
 email = CanonicalEmails.parse("Alex.Smith@gmail.com")
-email.address = "Alex Smith <Alex.Smith+Newsletter@GMAIL.COM>"
+email = CanonicalEmails.parse("Alex Smith <Alex.Smith+Newsletter@GMAIL.COM>")
 email.to_s # "Alex Smith <alexsmith@gmail.com>"
 email.username # "Alex.Smith+Newsletter"
 email.tag # "Newsletter"
 ```
 
-The object's class stays the same, and provider restrictions still apply. Rejected assignments leave the existing address unchanged. Generic addresses accept any domain and can be cleared with nil or an empty string. To auto-detect a different provider, call `CanonicalEmails.parse` again instead:
+Each parse selects the appropriate class and captures fresh original metadata:
 
 ```ruby
-email.address = "Alex.Smith@EXAMPLE.COM" # raises ArgumentError; email is unchanged
 email = CanonicalEmails.parse("Alex.Smith@EXAMPLE.COM")
 email.class # CanonicalEmails::Address
 email.address # "Alex.Smith@EXAMPLE.COM"

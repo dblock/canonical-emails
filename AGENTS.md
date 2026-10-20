@@ -6,7 +6,7 @@ CanonicalEmails transforms email addresses using Mail::Address and provides Acti
 
 `lib/canonical-emails.rb` is the main entry point; `lib/canonical_emails.rb` is its underscore alias. `CanonicalEmails.parse` dispatches to an address class or honors an explicit `type:`. `Address` subclasses compose opt-in mixins from `Behaviors`; provider restrictions use class-level `.accepts?` against the original parsed domain. `extensions.rb` defines model accessors with the same type contract. Specs use YAML fixtures under `spec/canonical-emails/fixtures/`.
 
-Preserve display names and original metadata. Gmail-specific classes must reject other domains. Parse input once; do not serialize between behaviors. All parsing entry points return nil for nil input. `address=` refreshes metadata and cached formatting, retains the class, and must reject invalid/provider-mismatched input without mutation. Parse a new object to change providers. This gem canonicalizes addresses; it does not verify mailbox ownership or deliverability.
+Preserve display names and original metadata. Gmail-specific classes must reject other domains. Parse input once; do not serialize between behaviors. All parsing entry points return nil for nil input. Address objects omit `address=`; parse a new object or assign through the model field writer. Model accessors cache results against a copy of raw input. Do not freeze Mail objects; reads populate lazy caches. This gem canonicalizes addresses; it does not verify mailbox ownership or deliverability.
 
 Overrides of Mail methods must preserve their argument signatures and return contracts. Test complete address serialization as well as local/domain fields.
 

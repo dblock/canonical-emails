@@ -16,30 +16,6 @@ describe CanonicalEmails::GMail do
     expect(described_class.parse(nil)).to be_nil
   end
 
-  it 'refreshes normalization and metadata on reassignment' do
-    address = described_class.parse('Alex.Smith+Old@gmail.com')
-    address.address = 'Alex Smith <Alex.Smith+Newsletter+Offers@GMAIL.COM>'
-
-    expect(address.to_s).to eq('Alex Smith <alexsmith@gmail.com>')
-    expect(address.username).to eq('Alex.Smith+Newsletter+Offers')
-    expect(address.tag).to eq('Newsletter+Offers')
-
-    address.address = 'Alex.Smith@gmail.com'
-    expect(address.tag).to be_nil
-    expect(address.to_s).to eq('alexsmith@gmail.com')
-  end
-
-  it 'rejects provider changes and clearing without changing the existing address' do
-    address = described_class.parse('Alex.Smith+Newsletter@gmail.com')
-
-    ['Alex@outlook.com', '', nil].each do |value|
-      expect { address.address = value }.to raise_error(ArgumentError, /does not support domain/)
-      expect(address.address).to eq('alexsmith@gmail.com')
-      expect(address.username).to eq('Alex.Smith+Newsletter')
-      expect(address.tag).to eq('Newsletter')
-    end
-  end
-
   ['Alex@EXAMPLE.COM', 'Alex@gmail.com.example.org', 'Alex@googlemail.com', 'Alex', ''].each do |value|
     it "rejects non-Gmail input #{value.inspect}" do
       expect { described_class.parse(value) }.to raise_error(ArgumentError, /does not support domain/)

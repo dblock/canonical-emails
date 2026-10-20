@@ -47,26 +47,15 @@ describe CanonicalEmails::Address do
     expect(address.tag).to be_nil
   end
 
-  it 'refreshes the username and cached display name when reassigned' do
-    address = described_class.parse('Alex Smith <Alex@EXAMPLE.COM>')
-    expect(address.to_s).to eq('Alex Smith <Alex@EXAMPLE.COM>')
+  it 'does not support mailbox reassignment on any address type' do
+    [described_class, CanonicalEmails::GMail, CanonicalEmails::TaggedGMail, CanonicalEmails::Downcase].each do |type|
+      address = type.parse('Alex.Smith+Newsletter@gmail.com')
+      original = address.to_s
 
-    address.address = 'Taylor Jones <Taylor+Work@gmail.com>'
-    expect(address.to_s).to eq('Taylor Jones <Taylor+Work@gmail.com>')
-    expect(address.username).to eq('Taylor+Work')
-    expect(address.tag).to be_nil
-    expect(address).to be_instance_of(described_class)
-
-    address.address = nil
-    expect(address.to_s).to eq('')
-    expect(address.username).to be_nil
-  end
-
-  it 'leaves the address unchanged when reassignment cannot be parsed' do
-    address = described_class.parse('Alex@EXAMPLE.COM')
-
-    expect { address.address = 123 }.to raise_error(TypeError)
-    expect { address.address = 'Alex <' }.to raise_error(Mail::Field::ParseError)
-    expect(address.address).to eq('Alex@EXAMPLE.COM')
+      expect(address).not_to respond_to(:address=)
+      expect { address.address = 'Taylor@example.com' }.to raise_error(NoMethodError)
+      expect(address.to_s).to eq(original)
+      expect(address.username).to eq('Alex.Smith+Newsletter')
+    end
   end
 end

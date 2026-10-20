@@ -1,5 +1,6 @@
 ### 0.2.0 (Next)
 
+* [#15](https://github.com/dblock/canonical-emails/pull/15): Cache canonical model accessors by raw field value and remove `address=` from all canonical address types - [@dblock](https://github.com/dblock).
 * [#14](https://github.com/dblock/canonical-emails/pull/14): Add `as:` for custom canonical email accessor names and optional original-reader overrides - [@dblock](https://github.com/dblock).
 * [#13](https://github.com/dblock/canonical-emails/pull/13): Document and test independent canonical accessors for multiple email fields - [@dblock](https://github.com/dblock).
 * [#12](https://github.com/dblock/canonical-emails/pull/12): Add explicit, case-insensitive provider registration, registry clearing, and an unregistered `TaggedGMail` type that retains plus-tags - [@dblock](https://github.com/dblock).
