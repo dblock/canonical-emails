@@ -1,4 +1,6 @@
-### Next
+### 0.2.0 (Next)
+
+* [#6](https://github.com/dblock/canonical-emails/pull/6): Add release and agent guides and prepare version 0.2.0 - [@dblock](https://github.com/dblock).
 
 * [#8](https://github.com/dblock/canonical-emails/pull/8): Add Danger checks with danger-changelog - [@dblock](https://github.com/dblock).
 * [#4](https://github.com/dblock/canonical-emails/pull/4): Replace Travis CI with GitHub Actions for Ruby 3.1–4.0 and ActiveSupport 6.1–8.1, require Ruby 3.1, and modernize development dependencies and lint configuration - [@dblock](https://github.com/dblock).
