@@ -1,5 +1,6 @@
 ### 0.2.0 (Next)
 
+* [#10](https://github.com/dblock/canonical-emails/pull/10): Refactor provider transformations into a shared address subclass with opt-in behavior mixins and document migration in UPGRADING.md - [@dblock](https://github.com/dblock).
 * [#6](https://github.com/dblock/canonical-emails/pull/6): Add release and agent guides and prepare version 0.2.0 - [@dblock](https://github.com/dblock).
 
 * [#8](https://github.com/dblock/canonical-emails/pull/8): Add Danger checks with danger-changelog - [@dblock](https://github.com/dblock).

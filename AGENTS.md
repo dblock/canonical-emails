@@ -4,7 +4,7 @@ CanonicalEmails transforms email addresses using Mail::Address and provides Acti
 
 ## Layout and Behavior
 
-`lib/canonical-emails.rb` is the main entry point; `lib/canonical_emails.rb` is its underscore alias. Transformations live in `lib/canonical-emails/`, and `extensions.rb` defines model accessors. Specs use YAML fixtures under `spec/canonical-emails/fixtures/`.
+`lib/canonical-emails.rb` is the main entry point; `lib/canonical_emails.rb` is its underscore alias. Transformations live in `lib/canonical-emails/`, and `extensions.rb` defines model accessors. `Address` subclasses compose opt-in mixins from `Behaviors`; provider restrictions use the private `normalize?` predicate against the original parsed domain. Specs use YAML fixtures under `spec/canonical-emails/fixtures/`.
 
 Preserve display names and the transformation order. Gmail-specific normalization must not affect other domains. Nil handling differs between existing transformations; retain documented and tested behavior unless intentionally changing it. This gem canonicalizes addresses; it does not verify mailbox ownership or deliverability.
 

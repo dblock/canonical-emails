@@ -4,40 +4,16 @@ module CanonicalEmails
   # Removes periods and plus tags and normalizes case for gmail.com addresses only.
   module GMail
     # A Gmail-aware address that retains the original username and plus-tag.
-    class Address < Mail::Address
-      attr_reader :username, :tag
-
-      def initialize(value = nil)
-        super
-        update_properties
-      end
-
-      def address=(value)
-        super
-        update_properties
-      end
-
-      def local(*)
-        value = super
-        return value unless value && gmail?
-
-        value.split('+', 2).first.delete('.').downcase
-      end
-
-      def domain(*)
-        value = super
-        value&.casecmp?('gmail.com') ? value.downcase : value
-      end
+    class Address < CanonicalEmails::Address
+      include Behaviors::DowncaseLocal
+      include Behaviors::DowncaseDomain
+      include Behaviors::RemovePeriods
+      include Behaviors::StripTags
 
       private
 
-      def gmail?
-        domain&.casecmp?('gmail.com')
-      end
-
-      def update_properties
-        @username = get_local
-        @tag = username && gmail? ? username.split('+', 2).at(1) : nil
+      def normalize?
+        get_domain&.casecmp?('gmail.com')
       end
     end
 
