@@ -81,6 +81,10 @@ To replace the default provider set, call `CanonicalEmails.clear` before registe
 
 `username` and `tag` are captured from the original parsed input rather than a previous transformer's serialized output. If a custom transformer previously patched Mail internals, move that behavior into a subclass or mixin while preserving method argument signatures and return contracts. [README.md](README.md) documents the composition and registration APIs.
 
+### Custom accessor names
+
+Model declarations accept `as:` to choose an accessor name: `canonical_email :email, as: :normalized_email`. The default remains `canonical_<field>`, and `type:` can be combined with `as:` independently for each field. Use `canonical_email :email, as: :email` to wrap the original reader with a prepended method calling `super`. The reader now returns an address object or nil, not the stored string; the writer and stored value remain unchanged. Update callers expecting strings. Raw access is model-specific (`user[:email]` in ActiveRecord, or the underlying instance variable for plain `attr_accessor`); no raw accessor is added.
+
 ### Provider boundaries and validation
 
 Generic addresses preserve local-part and domain casing for compatibility, not because domains are case-sensitive. Gmail rules are not applied to other domains. No Outlook transformer or period/plus-tag equivalence is assumed.

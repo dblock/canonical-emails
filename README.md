@@ -58,6 +58,51 @@ user.canonical_backup_email.address # "alexsmith+backup@gmail.com"
 
 The accessors are independent: each parses its own field's current value without changing either original field. Updating or clearing one field does not affect the other; a nil field produces a nil canonical accessor.
 
+### Custom Accessor Names
+
+Use `as:` to choose the generated accessor's name instead of `canonical_<field>`. String and symbol names are supported, and each field can have its own name and type:
+
+```ruby
+class User
+  include CanonicalEmails::Extensions
+
+  attr_accessor :email, :backup_email
+  canonical_email :email, as: :normalized_email
+  canonical_email :backup_email, as: :normalized_backup, type: CanonicalEmails::TaggedGMail
+end
+
+user = User.new
+user.email = "Alex.Smith+Newsletter@gmail.com"
+user.backup_email = "Alex.Smith+Backup@gmail.com"
+user.normalized_email.address # "alexsmith@gmail.com"
+user.normalized_backup.address # "alexsmith+backup@gmail.com"
+```
+
+Custom names replace the default generated names. When the name differs from the source field, the original reader and writer remain unchanged.
+
+#### Override the Original Reader
+
+Use the source field's name with `as:` to return a parsed address directly from that reader:
+
+```ruby
+class User
+  include CanonicalEmails::Extensions
+
+  attr_accessor :email
+  canonical_email :email, as: :email
+end
+
+user = User.new
+user.email = "Alex.Smith+Newsletter@gmail.com"
+user.email.class # CanonicalEmails::GMail
+user.email.address # "alexsmith@gmail.com"
+user.email.tag # "Newsletter"
+```
+
+This changes the reader's return type from a string to an address object (or `nil`), so update callers accordingly. The original writer still stores the submitted value unchanged; normalization happens on each read, not on assignment. A prepended reader calls the original implementation with `super`, supporting readers defined on the class, inherited readers, and generated attribute readers. The underlying reader must exist when accessed. `type:` also works with reader overrides, and parsing/provider errors propagate.
+
+Raw-value access depends on your model: for the `attr_accessor` example, `user.instance_variable_get(:@email)` returns the original string; in ActiveRecord, use `user[:email]`. No additional raw-value accessor is generated.
+
 ### Parse
 
 To parse an address directly without a model, use `CanonicalEmails.parse`:
