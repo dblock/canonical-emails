@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module CanonicalEmails
   module Reverse
     def self.transform(value)
@@ -7,7 +9,7 @@ module CanonicalEmails
             super.reverse
           end
 
-          def domain
+          def domain(*)
             super.reverse
           end
         end
