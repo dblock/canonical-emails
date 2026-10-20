@@ -44,6 +44,10 @@ ACTIVESUPPORT_VERSION='~> 7.2.0' bundle exec rspec
 
 Run focused specs with `bundle exec rspec spec/canonical-emails/gmail_spec.rb`. Run `bundle exec rake` for RuboCop and the full suite. Metrics and line-length cops are disabled; regenerate `.rubocop_todo.yml` only after applying autocorrections and reviewing the remaining offenses.
 
+## Coverage
+
+RSpec collects line and branch coverage with SimpleCov configured in `.simplecov`, including unloaded library files. Open `coverage/index.html` for the HTML report; `coverage/lcov.info` is generated for external reporting. The Coverage workflow uploads both reports and submits LCOV to [Coveralls](https://coveralls.io/github/dblock/canonical-emails). A maintainer must enable the repository in Coveralls for hosted reports.
+
 ## Write Tests
 
 Try to write a test that reproduces the problem you're trying to fix or describes a feature that you want to build.
