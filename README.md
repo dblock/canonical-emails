@@ -48,7 +48,9 @@ email.address # "donald.duck@example.com"
 
 #### CanonicalEmails::GMail
 
-Gmail.com e-mail addresses ignore periods and aren't case-sensitive. The canonical version removes them and changes the address portion to lowercase.
+Gmail.com e-mail addresses ignore periods, aren't case-sensitive, and support plus-address tags. The canonical version removes periods and the first `+` and everything after it from the local part, and normalizes case. Addresses on other domains are left unchanged, including Outlook.com and custom domains hosted by Google Workspace; Gmail's period-removal rules must not be applied to them.
+
+`GMail` lowercases the domain only when it is `gmail.com` (matched case-insensitively). For compatibility, it preserves both local-part and domain casing for all other domains: `Donald.Duck@EXAMPLE.COM` remains `Donald.Duck@EXAMPLE.COM`. Email domains are case-insensitive; preserving their case is not a requirement of email addressing. Use `CanonicalEmails::Downcase` when you want to lowercase both the local part and domain regardless of provider.
 
 ``` ruby
 email = CanonicalEmails::GMail.transform("Donald Duck <donald.duck@gmail.com>")
@@ -56,6 +58,21 @@ email.to_s # "Donald Duck <donaldduck@gmail.com>"
 email.local # "donaldduck"
 email.address # "donaldduck@gmail.com"
 ```
+
+The returned `CanonicalEmails::GMail::Address` inherits from `Mail::Address` and stores the removed suffix in its read-only `tag` property, preserving its case and any additional `+` characters. It returns `nil` when no tag is present or the address is not on Gmail, and `""` for an explicitly empty tag (`donald.duck+@gmail.com`). Like the address, the tag reflects subsequent assignments to `email.address`.
+
+The read-only `username` property preserves the original local part before normalization, including case, periods, and the full plus-tag, for any domain. It returns `nil` for empty addresses. Both properties refresh when `email.address` is reassigned.
+
+``` ruby
+email = CanonicalEmails::GMail.transform("Donald Duck <Donald.Duck+News+Offers@GMAIL.COM>")
+email.address # "donaldduck@gmail.com"
+email.username # "Donald.Duck+News+Offers"
+email.tag # "News+Offers"
+```
+
+### Validation
+
+Canonicalization is not validation. Transformations use `Mail::Address` parsing, which may reject malformed input but also accepts forms without a domain. They do not establish RFC compliance, DNS existence, mailbox ownership, or deliverability. Apply your application's validation policy separately and verify ownership with a confirmation email when needed.
 
 ### Multiple Transformations
 
