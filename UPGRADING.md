@@ -24,7 +24,7 @@ Names in the previous-API column are relative to `CanonicalEmails`.
 
 ### Provider detection and explicit types
 
-Automatic detection returns `CanonicalEmails::GMail` only for `gmail.com`, matched case-insensitively. Every other domain returns a generic `CanonicalEmails::Address` with no normalization, including Outlook, `googlemail.com`, and Google Workspace custom domains. A non-Gmail address is never wrapped in a Gmail object.
+Automatic detection uses a domain registry, with only `gmail.com` registered to `CanonicalEmails::GMail` by default. Matching is exact and case-insensitive. Unregistered domains return a generic `CanonicalEmails::Address` with no normalization, including Outlook, `googlemail.com`, and Google Workspace custom domains. A non-Gmail address is never wrapped in a Gmail object.
 
 Specifying `type:` disables automatic detection and requests that exact class. `GMail.parse(value)` is shorthand for `CanonicalEmails.parse(value, type: CanonicalEmails::GMail)` and raises `ArgumentError` for non-Gmail domains, empty strings, and domainless input. Direct construction with `GMail.new` also enforces the domain restriction.
 
@@ -63,25 +63,23 @@ The read-only `username` preserves the original local part. `tag` preserves the 
 
 ### Replace pipelines with behavior composition
 
-Positional transformer lists and `.transform`-based custom transformers are no longer supported by model accessors. The old pipeline serialized and reparsed each step, losing original metadata. Define one address subclass with the desired mixins and select it using `type:`:
+Positional transformer lists and `.transform`-based custom transformers are no longer supported by model accessors. The old pipeline serialized and reparsed each step, losing original metadata. Select one address class with the desired behaviors using `type:`. To normalize Gmail periods and case without removing plus-tags, use the built-in, unregistered `CanonicalEmails::TaggedGMail`:
 
 ```ruby
-class TaggedGMail < CanonicalEmails::Address
-  include CanonicalEmails::Behaviors::DowncaseLocal
-  include CanonicalEmails::Behaviors::DowncaseDomain
-  include CanonicalEmails::Behaviors::RemovePeriods
-
-  def self.accepts?(domain)
-    domain&.casecmp?("gmail.com")
-  end
-end
-
-canonical_email :email, type: TaggedGMail
+canonical_email :email, type: CanonicalEmails::TaggedGMail
+email = CanonicalEmails.parse("Alex.Smith+Newsletter@GMAIL.COM", type: CanonicalEmails::TaggedGMail)
+email.address # => "alexsmith+newsletter@gmail.com"
+email.username # => "Alex.Smith+Newsletter"
+email.tag # => nil
 ```
 
-This example retains plus-tags in the normalized address because it omits `StripTags`. Available mixins are `DowncaseLocal`, `DowncaseDomain`, `RemovePeriods`, and `StripTags`; there are no option flags. Custom types inherit `.parse` and must subclass `CanonicalEmails::Address`. Override `.accepts?` to reject unsupported domains; otherwise the base accepts all domains. Custom types are not automatically registered for provider dispatch.
+`TaggedGMail` retains plus-tags in the normalized address because it omits `StripTags`; default dispatch still selects `GMail`. Available mixins are `DowncaseLocal`, `DowncaseDomain`, `RemovePeriods`, and `StripTags`; there are no option flags. Custom types inherit `.parse` and must subclass `CanonicalEmails::Address`. Override `.accepts?` to reject unsupported domains; otherwise the base accepts all domains. Custom types are not automatically registered for provider dispatch.
 
-`username` and `tag` are captured from the original parsed input rather than a previous transformer's serialized output. If a custom transformer previously patched Mail internals, move that behavior into a subclass or mixin while preserving method argument signatures and return contracts. [README.md](README.md) documents the composition API.
+To enable automatic dispatch for a custom provider, call `CanonicalEmails.register("provider.example", type: CustomProvider)` during application initialization. The type must accept that domain. Matching is exact and case-insensitive; repeating the same mapping is allowed, but conflicting mappings raise `ArgumentError`. Explicit `type:` bypasses registration. Defining or loading a subclass alone does not change provider selection.
+
+To replace the default provider set, call `CanonicalEmails.clear` before registering your choices during application initialization. For example, `CanonicalEmails.clear` followed by `CanonicalEmails.register("gmail.com", type: CanonicalEmails::TaggedGMail)` opts automatic Gmail parsing into retaining plus-tags. Clearing removes every mapping, including built-in defaults; unregistered domains remain generic and defaults are not automatically restored. Explicit type selection still works.
+
+`username` and `tag` are captured from the original parsed input rather than a previous transformer's serialized output. If a custom transformer previously patched Mail internals, move that behavior into a subclass or mixin while preserving method argument signatures and return contracts. [README.md](README.md) documents the composition and registration APIs.
 
 ### Provider boundaries and validation
 

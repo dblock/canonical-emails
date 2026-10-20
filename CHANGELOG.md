@@ -1,5 +1,6 @@
 ### 0.2.0 (Next)
 
+* [#12](https://github.com/dblock/canonical-emails/pull/12): Add explicit, case-insensitive provider registration, registry clearing, and an unregistered `TaggedGMail` type that retains plus-tags - [@dblock](https://github.com/dblock).
 * [#11](https://github.com/dblock/canonical-emails/pull/11): Introduce breaking provider-aware `.parse` and `type:` APIs, replace nested provider address classes and transform pipelines, and enforce provider restrictions on address reassignment; see UPGRADING.md - [@dblock](https://github.com/dblock).
 * [#10](https://github.com/dblock/canonical-emails/pull/10): Refactor provider transformations into a shared address subclass with opt-in behavior mixins and document migration in UPGRADING.md - [@dblock](https://github.com/dblock).
 * [#6](https://github.com/dblock/canonical-emails/pull/6): Add release and agent guides and prepare version 0.2.0 - [@dblock](https://github.com/dblock).
