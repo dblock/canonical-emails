@@ -36,6 +36,28 @@ user.canonical_email.address # "alexsmith@gmail.com"
 user.canonical_email.tag # "Newsletter"
 ```
 
+### Multiple Email Fields
+
+Declare `canonical_email` once for each field. Each declaration creates a separate `canonical_<field>` accessor and can select its own `type:`:
+
+```ruby
+class User
+  include CanonicalEmails::Extensions
+
+  attr_accessor :email, :backup_email
+  canonical_email :email
+  canonical_email :backup_email, type: CanonicalEmails::TaggedGMail
+end
+
+user = User.new
+user.email = "Alex.Smith+Newsletter@gmail.com"
+user.backup_email = "Alex.Smith+Backup@gmail.com"
+user.canonical_email.address # "alexsmith@gmail.com"
+user.canonical_backup_email.address # "alexsmith+backup@gmail.com"
+```
+
+The accessors are independent: each parses its own field's current value without changing either original field. Updating or clearing one field does not affect the other; a nil field produces a nil canonical accessor.
+
 ### Parse
 
 To parse an address directly without a model, use `CanonicalEmails.parse`:
