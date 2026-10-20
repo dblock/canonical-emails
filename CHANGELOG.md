@@ -1,3 +1,7 @@
+### 0.2.1 (Next)
+
+* Your contribution here.
+
 ### 0.2.0 (2026-10-20)
 
 * [#15](https://github.com/dblock/canonical-emails/pull/15): Cache canonical model accessors by raw field value and remove `address=` from all canonical address types - [@dblock](https://github.com/dblock).

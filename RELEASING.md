@@ -9,26 +9,24 @@ Start from a clean, current master using a Ruby compatible with the ActiveSuppor
 ```sh
 git checkout master
 git pull --ff-only origin master
-bundle install
-bundle exec rake
 ```
+
+Install dependencies if needed. Run `bundle exec rake` once immediately before committing the release preparation.
 
 Confirm [CI](https://github.com/dblock/canonical-emails/actions/workflows/ci.yml) passes across the full Ruby/ActiveSupport matrix. Follow [Semantic Versioning](https://semver.org/); during the initial 0.x series, increment the minor version for breaking changes and describe them explicitly.
 
-Ensure `lib/canonical-emails/version.rb` matches the upcoming CHANGELOG.md section. Replace `Next` with a date in `YYYY-MM-DD` format, remove the contribution placeholder from that section, and review compatibility changes. Submit and merge a release-preparation PR before publishing:
+Ensure `lib/canonical-emails/version.rb` matches the upcoming CHANGELOG.md section. Replace `Next` with a date in `YYYY-MM-DD` format, remove the contribution placeholder and extra blank lines within the release's list, and review compatibility changes. Commit and push directly on master; no release-preparation PR is needed:
 
 ```sh
-git checkout -b release/0.2.0
+bundle exec rake
 git add CHANGELOG.md lib/canonical-emails/version.rb
 git commit -m "Prepare release 0.2.0"
-git push -u origin release/0.2.0
+git push origin master
 ```
 
-Use the intended version in place of 0.2.0 throughout this guide. After merging, update master and confirm the release commit's CI is green. Build and inspect the package:
+Use the intended version in place of 0.2.0 throughout this guide. Confirm the release commit's CI is green. Build and inspect the package from the clean release commit:
 
 ```sh
-git checkout master
-git pull --ff-only origin master
 bundle exec rake build
 tar -xOf pkg/canonical-emails-0.2.0.gem data.tar.gz | tar -tzf -
 ```
@@ -37,32 +35,31 @@ The package should contain library files and published documentation, not specs,
 
 ## Publish and Verify
 
-From the clean release commit:
-
-```sh
-bundle exec rake release
-```
-
-Bundler builds the gem, tags `v0.2.0`, pushes commits/tags, and publishes to RubyGems.org. Complete MFA as prompted.
-
-If only the upload fails, first check whether the version is already published. Do not move a pushed tag or rerun the release task blindly. Retry just the existing package upload if necessary:
+Ask the maintainer for a fresh RubyGems OTP immediately before publishing. Never store it in files or commit it. Publish the inspected package, entering the OTP when prompted:
 
 ```sh
 gem push pkg/canonical-emails-0.2.0.gem
 ```
 
-Verify [RubyGems](https://rubygems.org/gems/canonical-emails) and the tag's commit:
+If the upload fails or its result is unclear, check whether the version is already published before retrying the existing package. Verify the exact version using the RubyGems API; remote gem listings may lag:
 
 ```sh
-gem list --remote --exact canonical-emails
+curl --fail --silent --show-error https://rubygems.org/api/v2/rubygems/canonical-emails/versions/0.2.0.json
+```
+
+After successful publication, create and push the release tag. Never move an existing pushed tag:
+
+```sh
+git tag -a v0.2.0 -m "Version 0.2.0"
+git push origin v0.2.0
 git ls-remote --tags origin 'v0.2.0*'
 ```
 
-Create a [GitHub release](https://github.com/dblock/canonical-emails/releases) from the existing tag using that version's changelog entries. A GitHub release does not publish the gem to RubyGems.
+Create a [GitHub release](https://github.com/dblock/canonical-emails/releases) from that tag using only that version's changelog entries, not the entire changelog. Verify the published gem version, tag commit, and GitHub release before continuing. A GitHub release does not publish the gem to RubyGems.
 
 ## Next Development Version
 
-In a separate PR, increment the patch version in `lib/canonical-emails/version.rb` and prepend:
+Complete the release by incrementing the patch version in `lib/canonical-emails/version.rb` and prepending the matching changelog section:
 
 ```markdown
 ### 0.2.1 (Next)
@@ -71,8 +68,10 @@ In a separate PR, increment the patch version in `lib/canonical-emails/version.r
 ```
 
 ```sh
-git checkout -b chore/prepare-0.2.1
+bundle exec rake
 git add CHANGELOG.md lib/canonical-emails/version.rb
 git commit -m "Prepare next development version 0.2.1"
-git push -u origin chore/prepare-0.2.1
+git push origin master
 ```
+
+Commit this directly on master, without a PR or a new release tag. Leave master clean and ready for development.
