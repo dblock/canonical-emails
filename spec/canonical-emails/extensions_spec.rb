@@ -66,6 +66,83 @@ describe CanonicalEmails::Extensions do
     expect(user.canonical_email.address).to eq('Alex@EXAMPLE.COM')
   end
 
+  it 'names accessors independently while preserving source fields and types' do
+    user = Class.new do
+      include CanonicalEmails::Extensions
+
+      attr_accessor :email, :backup_email
+
+      canonical_email :email, as: :normalized_email
+      canonical_email :backup_email, as: 'normalized_backup', type: CanonicalEmails::TaggedGMail
+    end.new
+    user.email = 'Alex.Smith+Newsletter@gmail.com'
+    user.backup_email = 'Alex.Smith+Backup@gmail.com'
+
+    expect(user.normalized_email.address).to eq('alexsmith@gmail.com')
+    expect(user.normalized_backup).to be_instance_of(CanonicalEmails::TaggedGMail)
+    expect(user.normalized_backup.address).to eq('alexsmith+backup@gmail.com')
+    expect(user).not_to respond_to(:canonical_email, :canonical_backup_email)
+    expect(user.email).to eq('Alex.Smith+Newsletter@gmail.com')
+    expect(user.backup_email).to eq('Alex.Smith+Backup@gmail.com')
+
+    user.email = nil
+    expect(user.normalized_email).to be_nil
+    expect(user.normalized_backup.address).to eq('alexsmith+backup@gmail.com')
+  end
+
+  it 'wraps source readers for String and Symbol names without changing the writer' do
+    [:email, 'email'].each do |field|
+      [:email, 'email'].each do |name|
+        klass = model_class
+
+        klass.canonical_email(field, as: name)
+        user = klass.new
+        expect(user.email).to be_nil
+        user.email = 'Alex.Smith+Newsletter@gmail.com'
+        expect(user.email).to be_instance_of(CanonicalEmails::GMail)
+        expect(user.email.address).to eq('alexsmith@gmail.com')
+        expect(user.email.username).to eq('Alex.Smith+Newsletter')
+        expect(user.instance_variable_get(:@email)).to eq('Alex.Smith+Newsletter@gmail.com')
+      end
+    end
+  end
+
+  it 'rejects invalid accessor names' do
+    [nil, '', 123].each do |name|
+      expect { model_class(as: name) }.to raise_error(ArgumentError, /nonempty String or Symbol/)
+    end
+  end
+
+  it 'wraps readers defined after the declaration and supports repeated configuration' do
+    klass = Class.new do
+      include CanonicalEmails::Extensions
+
+      canonical_email :email, as: :email
+      canonical_email :email, as: :email, type: CanonicalEmails::TaggedGMail
+
+      attr_accessor :email
+    end
+    user = Class.new(klass).new
+    user.email = 'Alex.Smith+Newsletter@gmail.com'
+
+    expect(user.email).to be_instance_of(CanonicalEmails::TaggedGMail)
+    expect(user.email.address).to eq('alexsmith+newsletter@gmail.com')
+  end
+
+  it 'wraps inherited readers and propagates provider errors without changing stored input' do
+    parent = Class.new { attr_accessor :email }
+    klass = Class.new(parent) do
+      include CanonicalEmails::Extensions
+
+      canonical_email :email, as: :email, type: CanonicalEmails::GMail
+    end
+    user = klass.new
+    user.email = 'Alex@outlook.com'
+
+    expect { user.email }.to raise_error(ArgumentError, /does not support domain/)
+    expect(user.instance_variable_get(:@email)).to eq('Alex@outlook.com')
+  end
+
   it 'rejects provider mismatches and old positional transformer arguments' do
     user = model_class(type: CanonicalEmails::GMail).new
     user.email = 'Alex@outlook.com'

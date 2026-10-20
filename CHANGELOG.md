@@ -1,5 +1,6 @@
 ### 0.2.0 (Next)
 
+* [#14](https://github.com/dblock/canonical-emails/pull/14): Add `as:` for custom canonical email accessor names and optional original-reader overrides - [@dblock](https://github.com/dblock).
 * [#13](https://github.com/dblock/canonical-emails/pull/13): Document and test independent canonical accessors for multiple email fields - [@dblock](https://github.com/dblock).
 * [#12](https://github.com/dblock/canonical-emails/pull/12): Add explicit, case-insensitive provider registration, registry clearing, and an unregistered `TaggedGMail` type that retains plus-tags - [@dblock](https://github.com/dblock).
 * [#11](https://github.com/dblock/canonical-emails/pull/11): Introduce breaking provider-aware `.parse` and `type:` APIs, replace nested provider address classes and transform pipelines, and enforce provider restrictions on address reassignment; see UPGRADING.md - [@dblock](https://github.com/dblock).
