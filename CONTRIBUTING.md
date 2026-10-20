@@ -69,6 +69,8 @@ Document any external behavior in the [README](README.md).
 Add a line to [CHANGELOG](CHANGELOG.md) under *Next Release*.
 Make it look like every other line, including your name and link to your Github account.
 
+Danger checks changelog entries with `danger-changelog`. Keep `* Your contribution here.` in the upcoming release section. A read-only PR workflow generates the report; a separate workflow posts it without checking out PR code with write permissions. Both use pinned [danger-pr-comment](https://github.com/numbata/danger-pr-comment) reusable workflows.
+
 ## Commit Changes
 
 Make sure git knows your name and email address:
