@@ -150,4 +150,61 @@ describe CanonicalEmails::Extensions do
     expect { user.canonical_email }.to raise_error(ArgumentError, /does not support domain/)
     expect { model_class.canonical_email(:email, CanonicalEmails::GMail) }.to raise_error(ArgumentError)
   end
+
+  [false, true].each do |override|
+    it "caches unchanged input and refreshes changed input with override=#{override}" do
+      user = model_class(**(override ? { as: :email } : {})).new
+      reader = override ? :email : :canonical_email
+      raw = +'Alex.Smith+Newsletter@gmail.com'
+      user.email = raw
+      expect(CanonicalEmails).to receive(:parse).with(raw, type: nil).once.and_call_original
+      address = user.public_send(reader)
+      expect(user.public_send(reader)).to equal(address)
+      expect(address.to_s).to eq('alexsmith@gmail.com')
+
+      expect { address.address = 'Alex@gmail.com' }.to raise_error(NoMethodError)
+      expect(user.instance_variable_get(:@email)).to eq(raw)
+
+      raw.replace('Alex.Smith+Work@gmail.com')
+      expect(CanonicalEmails).to receive(:parse).with(raw, type: nil).once.and_call_original
+      refreshed = user.public_send(reader)
+      expect(refreshed).not_to equal(address)
+      expect(refreshed.tag).to eq('Work')
+      expect(user.public_send(reader)).to equal(refreshed)
+
+      user.instance_variable_set(:@email, 'Alex@EXAMPLE.COM')
+      expect(CanonicalEmails).to receive(:parse).with('Alex@EXAMPLE.COM', type: nil).once.and_call_original
+      expect(user.public_send(reader)).to be_instance_of(CanonicalEmails::Address)
+
+      user.email = nil
+      expect(CanonicalEmails).to receive(:parse).with(nil, type: nil).once.and_call_original
+      2.times { expect(user.public_send(reader)).to be_nil }
+    end
+  end
+
+  it 'keeps cached results separate between instances and accessor configurations' do
+    klass = model_class
+    klass.canonical_email :email, as: :tagged_email, type: CanonicalEmails::TaggedGMail
+    first = klass.new
+    second = klass.new
+    first.email = second.email = 'Alex.Smith+Newsletter@gmail.com'
+
+    expect(first.canonical_email).not_to equal(second.canonical_email)
+    expect(first.tagged_email.address).to eq('alexsmith+newsletter@gmail.com')
+    expect(first.canonical_email.address).to eq('alexsmith@gmail.com')
+
+    klass.canonical_email :email, type: CanonicalEmails::TaggedGMail
+    expect(first.canonical_email).to be_instance_of(CanonicalEmails::TaggedGMail)
+  end
+
+  it 'does not cache failures or return stale results for invalid input' do
+    user = model_class(type: CanonicalEmails::GMail).new
+    user.email = 'Alex@gmail.com'
+    previous = user.canonical_email
+    user.email = 'Alex@outlook.com'
+
+    2.times { expect { user.canonical_email }.to raise_error(ArgumentError, /does not support domain/) }
+    user.email = 'Alex@gmail.com'
+    expect(user.canonical_email).to equal(previous)
+  end
 end

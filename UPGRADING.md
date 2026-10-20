@@ -34,11 +34,11 @@ Use `type: CanonicalEmails::Address` to preserve an address unchanged even if it
 
 Every `.parse` entry point now returns `nil` for nil input. Previously `GMail.transform(nil)` returned an empty address, so callers must handle nil consistently. Default parsing of an empty or whitespace-only string returns an empty generic address; domainless input remains generic. Input must be a String or nil; other values raise `TypeError` instead of being silently stringified by model accessors. Mail parsing errors propagate.
 
-`address=` remains supported and refreshes normalization, `username`, `tag`, and cached display-name/comment formatting. It retains the object's class and enforces that class's provider restriction. Assigning a non-Gmail, empty, or nil value to a Gmail object raises `ArgumentError`, leaving its existing address and metadata unchanged. Generic addresses can be cleared with nil or an empty string. Invalid input types and parsing errors also leave the object unchanged.
+`address=` has been removed from all canonical address types. Calling it raises `NoMethodError`. Parse a new object instead; for model fields, assign through the original writer (`user.email = value`) and let the next canonical read refresh the cache.
 
 ```ruby
 email = CanonicalEmails.parse("Alex@gmail.com")
-email.address = "Alex.Smith+Newsletter@GMAIL.COM"
+email = CanonicalEmails.parse("Alex.Smith+Newsletter@GMAIL.COM")
 email.tag # => "Newsletter"
 # To change providers, parse a new object:
 email = CanonicalEmails.parse("Alex@EXAMPLE.COM")
@@ -84,6 +84,12 @@ To replace the default provider set, call `CanonicalEmails.clear` before registe
 ### Custom accessor names
 
 Model declarations accept `as:` to choose an accessor name: `canonical_email :email, as: :normalized_email`. The default remains `canonical_<field>`, and `type:` can be combined with `as:` independently for each field. Use `canonical_email :email, as: :email` to wrap the original reader with a prepended method calling `super`. The reader now returns an address object or nil, not the stored string; the writer and stored value remain unchanged. Update callers expecting strings. Raw access is model-specific (`user[:email]` in ActiveRecord, or the underlying instance variable for plain `attr_accessor`); no raw accessor is added.
+
+### Model accessor caching
+
+Canonical model readers, including `as: :email` overrides, now reuse the same parsed object while the raw field value is unchanged. The cache compares a saved copy of the input, detecting in-place string changes and writes that bypass the model setter. Nil results are cached; failed parses are not. Changing provider registrations without changing the raw input does not invalidate cached results; configure providers during initialization.
+
+All canonical addresses, including direct `CanonicalEmails.parse` results, omit `address=`. Update model fields through their writers or parse a new standalone object. No model-owned flags or freezing are used; Mail's lazy caches and other inherited mutable APIs are unchanged.
 
 ### Provider boundaries and validation
 
